@@ -10,20 +10,20 @@
    <children>
       <ComboBox fx:id="semesterIdField" layoutX="14.0" layoutY="14.0" onAction="#handleSemesterIdSelected" prefHeight="31.0" prefWidth="190.0" promptText="Select Semester" />
       <ListView fx:id="allStudentListField" layoutX="14.0" layoutY="53.0" onMouseClicked="#handleListViewSelected" prefHeight="414.0" prefWidth="190.0" />
-      <TextField layoutX="252.0" layoutY="14.0" prefHeight="31.0" prefWidth="200.0" promptText="Student Id" />
-      <Button layoutX="474.0" layoutY="14.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="52.0" text="Search" />
+      <TextField fx:id="searchField" layoutX="252.0" layoutY="14.0" prefHeight="31.0" prefWidth="200.0" promptText="Student Id" />
+      <Button layoutX="463.0" layoutY="14.0" mnemonicParsing="false" onAction="#handleSearchId" prefHeight="31.0" prefWidth="63.0" text="Search" />
       <Label layoutX="252.0" layoutY="67.0" prefHeight="31.0" prefWidth="52.0" text="Name:" />
       <Label layoutX="257.0" layoutY="111.0" prefHeight="24.0" prefWidth="41.0" text="ID:" />
       <TextField fx:id="studentNameField" layoutX="314.0" layoutY="67.0" prefHeight="31.0" prefWidth="211.0" />
       <TextField fx:id="studentIdField" layoutX="314.0" layoutY="107.0" prefHeight="31.0" prefWidth="211.0" />
-      <TableView fx:id="allStudentTableView" layoutX="210.0" layoutY="160.0" prefHeight="304.0" prefWidth="604.0">
+      <TableView fx:id="allStudentTableView" layoutX="210.0" layoutY="160.0" prefHeight="304.0" prefWidth="674.0">
         <columns>
           <TableColumn fx:id="courseCodeView" prefWidth="82.0" text="Course Code" />
-          <TableColumn fx:id="courseTitleView" prefWidth="229.0" text="Course Title" />
-            <TableColumn fx:id="facultyView" prefWidth="64.0" text="Faculty" />
-            <TableColumn fx:id="creditView" prefWidth="49.0" text="Credits" />
-            <TableColumn fx:id="actualGradeView" text="Actual Grade" />
-            <TableColumn fx:id="predictGradeView" prefWidth="99.0" text="Predicted Grade" />
+          <TableColumn fx:id="courseTitleView" prefWidth="265.0" text="Course Title" />
+            <TableColumn fx:id="facultyView" prefWidth="59.0" text="Faculty" />
+            <TableColumn fx:id="creditView" prefWidth="58.0" text="Credits" />
+            <TableColumn fx:id="actualGradeView" prefWidth="93.0" text="Actual Grade" />
+            <TableColumn fx:id="predictGradeView" prefWidth="114.0" text="Predicted Grade" />
         </columns>
       </TableView>
    </children>

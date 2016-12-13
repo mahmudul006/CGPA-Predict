@@ -39,6 +39,7 @@ public class FXMLDocumentController implements Initializable {
     private ComboBox<Number> semesterIdField;
     ObservableList<Number> semesterList;
     ObservableList<Student> allStudentList;
+    ObservableList<Student> newstudentid;
     ObservableList<StudentDetails>studentDetailsList;
     private Connection connection;
     private Statement statement;
@@ -53,6 +54,7 @@ public class FXMLDocumentController implements Initializable {
     private TextField studentIdField;
     @FXML
     private TableView<StudentDetails> allStudentTableView;
+    
      @FXML
     private TableColumn<StudentDetails, String> courseCodeView;
     @FXML
@@ -65,6 +67,8 @@ public class FXMLDocumentController implements Initializable {
     private TableColumn<StudentDetails, String> predictGradeView;
     @FXML
     private TableColumn<StudentDetails, String> actualGradeView;
+    @FXML
+    private TextField searchField;
     
     
     @Override
@@ -92,10 +96,11 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void handleSemesterIdSelected(ActionEvent event) {
+        searchField.setText("");
         allStudentList=FXCollections.observableArrayList();
         allStudentListField.setItems(allStudentList);
         selectedSemesterId=(int) semesterIdField.getSelectionModel().getSelectedItem();
-        String query="SELECT R.studentId,S.studentName FROM registration as R INNER JOIN student AS S ON R.studentId=S.studentId WHERE semesterId='"+selectedSemesterId+"'";
+        String query="SELECT DISTINCT R.studentId,S.studentName FROM registration as R INNER JOIN student AS S ON R.studentId=S.studentId WHERE semesterId='"+selectedSemesterId+"'";
         try {
             resultset=statement.executeQuery(query);
             while(resultset.next())
@@ -114,18 +119,21 @@ public class FXMLDocumentController implements Initializable {
     private void handleListViewSelected(MouseEvent event) {
         studentDetailsList=FXCollections.observableArrayList();
         Student s=allStudentListField.getSelectionModel().getSelectedItem();
-        studentIdField.setText(s.getStudentId());
+        studentId=s.getStudentId();
+        studentIdField.setText(studentId);
         studentNameField.setText(s.getStudentName());
+        
         String query="SELECT G.courseCode,C.courseTitle,C.credits,G.facultyInitials,G.grade FROM grades AS G INNER JOIN course as C ON G.courseCode=C.courseCode WHERE G.studentId='"+s.getStudentId()+"' AND G.semesterId='"+selectedSemesterId+"'";
         try {
             resultset=statement.executeQuery(query);
             while(resultset.next())
             {
-                String courseCode=resultset.getString("courseCode");
+                int a1=0,a2=0,a3=0,b1=0,b2=0,b3=0,c=0,d=0,f=0;
+                courseCode=resultset.getString("courseCode");
                 String courseTitle=resultset.getString("courseTitle");
                 String credits=resultset.getString("credits");
-                String facultyInitials=resultset.getString("facultyInitials");
-                String predictGrade="0";
+                facultyInitials=resultset.getString("facultyInitials");
+                predictGrade();
                 String grade=resultset.getString("grade");
                 StudentDetails sd=new StudentDetails(courseCode, courseTitle, credits, facultyInitials, predictGrade, grade);
                 studentDetailsList.add(sd);
@@ -137,10 +145,169 @@ public class FXMLDocumentController implements Initializable {
             facultyView.setCellValueFactory(x->new SimpleStringProperty(x.getValue().getFacultyInitials()));
             predictGradeView.setCellValueFactory(x->new SimpleStringProperty(x.getValue().getPredictGrade()));
             actualGradeView.setCellValueFactory(x->new SimpleStringProperty(x.getValue().getGrade()));
-            
         } catch (SQLException ex) {
             Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    @FXML
+    private void handleSearchId(ActionEvent event) {
+        newstudentid=FXCollections.observableArrayList();
+        String studentId=searchField.getText();
+        for(Student s:allStudentList)
+        {
+            if(s.getStudentId().equals(studentId))
+            {
+                newstudentid.add(s);
+            }
+        }
+        allStudentListField.setItems(newstudentid);
+    }
+    private String getAlphabaticGrades(double grade)
+    {
+                    if(grade>=4.00)
+                    {
+                        return "A+";
+                    }
+                    else if(grade>=3.75)
+                    {
+                        return "A";
+                    }
+                    else if(grade>=3.50)
+                    {
+                       return "A-";
+                    }
+                    else if(grade>=3.25)
+                    {
+                        return "B+";
+                    }
+                    else if(grade>=3.00)
+                    {
+                       return "B";
+                    }
+                    else if(grade>=2.75)
+                    {
+                        return "B-";
+                    }
+                    else if(grade>=2.5)
+                    {
+                        return "C+";
+                    }
+                    else if(grade>=2.25)
+                    {
+                        return "C";
+                    }
+                    else
+                    {
+                       return "D";
+                    }
+    }
+    private String courseCode;
+    private String predictGrade="0";
+    private String facultyInitials="";
+    String studentId="";
+        private void predictGrade() throws SQLException
+    {
+         Statement stmnts=connection.createStatement();
+         double gradeValue=0.00; 
+         double totalCredits=0.00;
+         String queryForTeacherInitial="SELECT C.credits ,G.grade FROM course as C INNER JOIN grades AS G ON C.courseCode=G.courseCode WHERE G.facultyInitials='"+facultyInitials+"' AND G.semesterId='"+selectedSemesterId+"' AND G.courseCode='"+courseCode+"'";
+         ResultSet rst=stmnts.executeQuery(queryForTeacherInitial);
+         
+         while(rst.next())
+         {
+             double credits=rst.getDouble("credits");
+             String grades=rst.getString("grade");
+             totalCredits+=credits;
+             switch (grades) {
+                 case "A+":
+                     gradeValue+=4.00*credits;
+                     break;
+                 case "A":
+                     gradeValue+=3.75*credits;
+                     break;
+                 case "A-":
+                     gradeValue+=3.50*credits;
+                     break;
+                 case "B+":
+                     gradeValue+=3.25*credits;
+                     break;
+                 case "B":
+                     gradeValue+=3.00*credits;
+                     break;
+                 case "B-":
+                     gradeValue+=2.75*credits;
+                     break;
+                 case "C+":
+                     gradeValue+=2.50*credits;
+                     break;
+                 case "C":
+                     gradeValue+=2.25*credits;
+                     break;
+                 case "D":
+                     gradeValue+=2.00*credits;
+                     break;
+                 default:
+                     gradeValue+=0.0;
+                     break;
+             }
+             
+         }
+         double averageResult=gradeValue/totalCredits;
+         double gradesValue=0.00;
+         double totalCredit=0.00;
+         String queryForBacklog="SELECT C.credits ,G.grade FROM course as C INNER JOIN grades AS G ON C.courseCode=G.courseCode WHERE G.studentId='"+studentId+"'";
+         Statement stment=connection.createStatement();
+         ResultSet rest=stment.executeQuery(queryForBacklog);
+         while(rest.next())
+         {
+             double credits=rest.getDouble("credits");
+             String grades=rest.getString("grade");
+             totalCredit+=credits;
+             switch (grades) {
+                 case "A+":
+                     gradesValue+=4.00*credits;
+                     break;
+                 case "A":
+                     gradesValue+=3.75*credits;
+                     break;
+                 case "A-":
+                     gradesValue+=3.50*credits;
+                     break;
+                 case "B+":
+                     gradesValue+=3.25*credits;
+                     break;
+                 case "B":
+                     gradesValue+=3.00*credits;
+                     break;
+                 case "B-":
+                     gradesValue+=2.75*credits;
+                     break;
+                 case "C+":
+                     gradesValue+=2.50*credits;
+                     break;
+                 case "C":
+                     gradesValue+=2.25*credits;
+                     break;
+                 case "D":
+                     gradesValue+=2.00*credits;
+                     break;
+                 default:
+                     gradesValue+=0.0;
+                     break;
+             }
+             
+         }
+         double averageResultStudent=gradesValue/totalCredit;        
+         predictGrade=getAlphabaticGrades((averageResult+averageResultStudent)/2);
+    }
+
+  
+    
+ 
+
+   
+
+   
     
 }
